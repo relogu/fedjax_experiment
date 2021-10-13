@@ -1,0 +1,6 @@
+# for datasets
+*.tgz
+*.zip
+*.json
+# for results on UniBO machine
+*.csv
