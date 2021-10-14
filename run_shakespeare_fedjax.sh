@@ -9,7 +9,7 @@ for elem in "${elems[@]}"; do
             --clients_per_round 2 \
 			--local_epochs ${strarr[0]} \
 			--learning_rate 0.8 \
-    		-v >> "log/shakespeare_${strarr[0]}_log.txt"
+    		-v >> "logdir/shakespeare_${strarr[0]}_log.txt"
 done
 # # original LEAF experiments
 # for elem in "${elems[@]}"; do
