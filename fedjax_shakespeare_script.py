@@ -144,9 +144,9 @@ def create_rnn_model(vocab_size: int = 80,
         # [time_steps, batch_size, hidden_size].
         output, _ = hk.dynamic_unroll(rnn_core, embeddings, initial_state)
 
-        output = hk.Linear(full_vocab_size)(output)
+        output = hk.Linear(full_vocab_size)(output[-1,:,:])
         # [batch_size, time_steps, full_vocab_size].
-        output = jnp.transpose(output, axes=(1, 0, 2))
+        #output = jnp.transpose(output, axes=(0, 1, 2))
         return output
 
     def train_loss(batch, preds):
@@ -202,6 +202,14 @@ def word_to_indices(word):
     for c in word:
         indices.append(ALL_LETTERS.find(c))
     return indices
+
+def preprocess_from_arrays(x, y):
+    a = np.array([xx+yy for (xx, yy) in zip(x, y)])
+    x = np.array([aa[:-1] for aa in a])
+    y = np.array([aa[-1] for aa in a])
+    x = np.array([word_to_indices(word) for word in x])
+    y = np.array([word_to_indices(word) for word in y])
+    return x, y
 
 def get_parser():
     parser = argparse.ArgumentParser(
@@ -323,13 +331,7 @@ if __name__ == "__main__":
         for i, path in enumerate(c_train):
             with open(path, 'r') as file:
                 f = json.load(file)
-                x = np.array(f['x'])
-                y = np.array(f['y'])
-                a = np.array([xx+yy for (xx, yy) in zip(x, y)])
-                x = np.array([aa[:-1] for aa in a])
-                y = np.array([aa[1:] for aa in a])
-                x = np.array([word_to_indices(word) for word in x])
-                y = np.array([word_to_indices(word) for word in y])
+                x, y = preprocess_from_arrays(np.array(f['x']), np.array(f['y']))
                 client_id_to_train_dataset_mapping[i] = {'x': x,
                                                          'y': y}
         current_train_data = fedjax.InMemoryFederatedData(
@@ -339,13 +341,7 @@ if __name__ == "__main__":
         for i, path in enumerate(c_test):
             with open(path, 'r') as file:
                 f = json.load(file)
-                x = np.array(f['x'])
-                y = np.array(f['y'])
-                a = [xx+yy for (xx, yy) in zip(x, y)]
-                x = [aa[:-1] for aa in a]
-                y = [aa[1:] for aa in a]
-                x = np.array([word_to_indices(word) for word in x])
-                y = np.array([word_to_indices(word) for word in y])
+                x, y = preprocess_from_arrays(np.array(f['x']), np.array(f['y']))
                 client_id_to_test_dataset_mapping[i] = {'x': x,
                                                         'y': y}
         current_test_data = fedjax.InMemoryFederatedData(
