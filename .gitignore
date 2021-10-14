@@ -4,3 +4,5 @@
 *.json
 # for results on UniBO machine
 *.csv
+# for logs of the experiments
+*txt
